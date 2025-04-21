@@ -8,7 +8,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# Dependency to get Database session
+# Dependency to get a database session
 def get_db():
     db = SessionLocal()
     try:
@@ -17,13 +17,12 @@ def get_db():
         db.close()
 
 
-# Endpoint to fetch all todos
+# Fetch all todos
 @app.get("/api/todos/", response_model=list[schemas.TodoOut])
 def read_todos(db: Session = Depends(get_db)):
     return db.query(models.Todo).all()
 
-
-# Endpoint to create todos
+# Create a new todo
 @app.post("/api/todos/", response_model=schemas.TodoOut)
 def create_todo(todo: schemas.TodoCreate, db: Session = Depends(get_db)):
     db_todo = models.Todo(**todo.dict())
@@ -32,14 +31,13 @@ def create_todo(todo: schemas.TodoCreate, db: Session = Depends(get_db)):
     db.refresh(db_todo)
     return db_todo
 
-
-# Endpoint to update todos
+# Update a todo
 @app.patch("/api/todos/{todo_id}/", response_model=schemas.TodoOut)
 def update_todo(todo_id: int, update_data: schemas.TodoUpdate, db: Session = Depends(get_db)):
     todo = db.query(models.Todo).filter(models.Todo.id == todo_id).first()
     if not todo:
         raise HTTPException(status_code=404, detail="Todo not found")
-    
+
     if update_data.description is not None:
         todo.description = update_data.description
     if update_data.status is not None:
@@ -49,14 +47,13 @@ def update_todo(todo_id: int, update_data: schemas.TodoUpdate, db: Session = Dep
     db.refresh(todo)
     return todo
 
-
-# Endpoint to delete todos
+# Delete a todo
 @app.delete("/api/todos/{todo_id}/")
 def delete_todo(todo_id: int, db: Session = Depends(get_db)):
     todo = db.query(models.Todo).filter(models.Todo.id == todo_id).first()
     if not todo:
         raise HTTPException(status_code=404, detail="Todo not found")
-    
+
     db.delete(todo)
     db.commit()
     return {"message": "Todo deleted"}
