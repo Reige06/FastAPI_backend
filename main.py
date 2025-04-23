@@ -40,7 +40,7 @@ def create_todo(todo: schemas.TodoCreate, db: Session = Depends(get_db)):
     return db_todo
 
 # Update a todo
-@app.patch("/api/todos/{todo_id}/", response_model=schemas.TodoOut)
+@app.put("/api/todos/{todo_id}/", response_model=schemas.TodoOut)
 def update_todo(todo_id: int, update_data: schemas.TodoUpdate, db: Session = Depends(get_db)):
     todo = db.query(models.Todo).filter(models.Todo.id == todo_id).first()
     if not todo:
